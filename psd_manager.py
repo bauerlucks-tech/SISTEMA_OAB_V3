@@ -110,3 +110,4 @@ def processar_psd_para_banco(psd_path, tipo):
     conn.close()
     
     return len(camadas)
+#
