@@ -1,228 +1,194 @@
-// Sistema de seleção de área da foto
-class AreaSelecao {
+// Sistema de seleção com 2 cliques
+class SelecionadorArea {
     constructor(containerId, imagemId) {
         this.container = document.getElementById(containerId);
         this.imagem = document.getElementById(imagemId);
-        this.selecao = null;
+        this.area = document.getElementById('area-selecao');
         this.coordenadas = { x1: 0, y1: 0, x2: 0, y2: 0 };
-        this.isDrawing = false;
-        
+        this.cliqueAtual = 0;
         this.inicializar();
     }
     
     inicializar() {
-        this.selecao = document.createElement('div');
-        this.selecao.className = 'selecao-foto';
-        this.selecao.style.display = 'none';
-        this.container.appendChild(this.selecao);
+        this.imagem.addEventListener('click', this.clicar.bind(this));
         
-        this.imagem.addEventListener('mousedown', this.iniciarSelecao.bind(this));
-        this.imagem.addEventListener('mousemove', this.desenharSelecao.bind(this));
-        this.imagem.addEventListener('mouseup', this.finalizarSelecao.bind(this));
+        // Botão limpar
+        document.getElementById('btn-limpar').addEventListener('click', () => {
+            this.limpar();
+        });
         
-        this.imagem.addEventListener('touchstart', this.iniciarSelecaoTouch.bind(this));
-        this.imagem.addEventListener('touchmove', this.desenharSelecaoTouch.bind(this));
-        this.imagem.addEventListener('touchend', this.finalizarSelecaoTouch.bind(this));
+        // Botão salvar
+        document.getElementById('btn-salvar-area').addEventListener('click', () => {
+            this.salvar();
+        });
     }
     
-    getMousePos(e) {
+    clicar(event) {
         const rect = this.imagem.getBoundingClientRect();
-        return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        };
-    }
-    
-    getTouchPos(e) {
-        const rect = this.imagem.getBoundingClientRect();
-        const touch = e.touches[0];
-        return {
-            x: touch.clientX - rect.left,
-            y: touch.clientY - rect.top
-        };
-    }
-    
-    iniciarSelecao(e) {
-        e.preventDefault();
-        const pos = this.getMousePos(e);
-        this.coordenadas = { x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y };
-        this.isDrawing = true;
-        this.atualizarSelecao();
-    }
-    
-    iniciarSelecaoTouch(e) {
-        e.preventDefault();
-        const pos = this.getTouchPos(e);
-        this.coordenadas = { x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y };
-        this.isDrawing = true;
-        this.atualizarSelecao();
-    }
-    
-    desenharSelecao(e) {
-        if (!this.isDrawing) return;
-        e.preventDefault();
-        const pos = this.getMousePos(e);
-        this.coordenadas.x2 = pos.x;
-        this.coordenadas.y2 = pos.y;
-        this.atualizarSelecao();
-    }
-    
-    desenharSelecaoTouch(e) {
-        if (!this.isDrawing) return;
-        e.preventDefault();
-        const pos = this.getTouchPos(e);
-        this.coordenadas.x2 = pos.x;
-        this.coordenadas.y2 = pos.y;
-        this.atualizarSelecao();
-    }
-    
-    finalizarSelecao(e) {
-        if (!this.isDrawing) return;
-        e.preventDefault();
-        this.isDrawing = false;
-        this.salvarArea();
-    }
-    
-    finalizarSelecaoTouch(e) {
-        if (!this.isDrawing) return;
-        e.preventDefault();
-        this.isDrawing = false;
-        this.salvarArea();
-    }
-    
-    atualizarSelecao() {
-        const x = Math.min(this.coordenadas.x1, this.coordenadas.x2);
-        const y = Math.min(this.coordenadas.y1, this.coordenadas.y2);
-        const width = Math.abs(this.coordenadas.x2 - this.coordenadas.x1);
-        const height = Math.abs(this.coordenadas.y2 - this.coordenadas.y1);
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
         
-        this.selecao.style.left = x + 'px';
-        this.selecao.style.top = y + 'px';
-        this.selecao.style.width = width + 'px';
-        this.selecao.style.height = height + 'px';
-        this.selecao.style.display = 'block';
-        
-        document.getElementById('coordenadas-area').value = 
-            `[${Math.round(x)}, ${Math.round(y)}, ${Math.round(x + width)}, ${Math.round(y + height)}]`;
+        if (this.cliqueAtual === 0) {
+            // Primeiro clique
+            this.coordenadas.x1 = Math.round(x);
+            this.coordenadas.y1 = Math.round(y);
+            this.area.style.left = x + 'px';
+            this.area.style.top = y + 'px';
+            this.area.style.display = 'block';
+            this.cliqueAtual = 1;
+            
+            document.getElementById('status-selecao').textContent = 
+                `Primeiro ponto: (${x}, ${y}) - Clique no segundo ponto`;
+        } else {
+            // Segundo clique
+            this.coordenadas.x2 = Math.round(x);
+            this.coordenadas.y2 = Math.round(y);
+            
+            // Garantir que x2 > x1 e y2 > y1
+            if (this.coordenadas.x2 < this.coordenadas.x1) {
+                [this.coordenadas.x1, this.coordenadas.x2] = [this.coordenadas.x2, this.coordenadas.x1];
+            }
+            if (this.coordenadas.y2 < this.coordenadas.y1) {
+                [this.coordenadas.y1, this.coordenadas.y2] = [this.coordenadas.y2, this.coordenadas.y1];
+            }
+            
+            const width = this.coordenadas.x2 - this.coordenadas.x1;
+            const height = this.coordenadas.y2 - this.coordenadas.y1;
+            
+            this.area.style.width = width + 'px';
+            this.area.style.height = height + 'px';
+            this.cliqueAtual = 0;
+            
+            // Atualizar interface
+            document.getElementById('status-selecao').textContent = 
+                `Área selecionada: (${this.coordenadas.x1}, ${this.coordenadas.y1}) até (${this.coordenadas.x2}, ${this.coordenadas.y2})`;
+            
+            document.getElementById('btn-salvar-area').disabled = false;
+            
+            // Mostrar coordenadas
+            document.getElementById('coordenadas-info').innerHTML = `
+                <strong>Coordenadas da área da foto:</strong><br>
+                X1: ${this.coordenadas.x1}px<br>
+                Y1: ${this.coordenadas.y1}px<br>
+                X2: ${this.coordenadas.x2}px<br>
+                Y2: ${this.coordenadas.y2}px<br>
+                Largura: ${width}px<br>
+                Altura: ${height}px
+            `;
+        }
     }
     
-    salvarArea() {
-        const x = parseInt(this.selecao.style.left);
-        const y = parseInt(this.selecao.style.top);
-        const width = parseInt(this.selecao.style.width);
-        const height = parseInt(this.selecao.style.height);
-        
-        const area = [x, y, x + width, y + height];
-        
+    limpar() {
+        this.cliqueAtual = 0;
+        this.coordenadas = { x1: 0, y1: 0, x2: 0, y2: 0 };
+        this.area.style.display = 'none';
+        this.area.style.width = '0';
+        this.area.style.height = '0';
+        document.getElementById('btn-salvar-area').disabled = true;
+        document.getElementById('status-selecao').textContent = 'Clique para selecionar o primeiro ponto';
+        document.getElementById('coordenadas-info').innerHTML = '';
+    }
+    
+    salvar() {
         fetch('/api/salvar_area_foto', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ area: area })
+            body: JSON.stringify(this.coordenadas)
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 alert('Área da foto salva com sucesso!');
+            } else {
+                alert('Erro ao salvar área: ' + (data.error || 'Desconhecido'));
             }
         })
         .catch(error => {
-            console.error('Erro ao salvar área:', error);
-            alert('Erro ao salvar área da foto.');
+            console.error('Erro:', error);
+            alert('Erro ao salvar área da foto');
         });
-    }
-    
-    limparSelecao() {
-        this.selecao.style.display = 'none';
-        this.coordenadas = { x1: 0, y1: 0, x2: 0, y2: 0 };
-        document.getElementById('coordenadas-area').value = '';
     }
 }
 
+// Gerenciador de campos
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('area-selecao-container') && document.getElementById('preview-imagem')) {
-        window.seletorArea = new AreaSelecao('area-selecao-container', 'preview-imagem');
+    // Inicializar seletor de área se existir na página
+    if (document.getElementById('preview-imagem')) {
+        window.selecionador = new SelecionadorArea('preview-container', 'preview-imagem');
     }
     
-    const uploadInputs = document.querySelectorAll('input[type="file"]');
-    uploadInputs.forEach(input => {
-        input.addEventListener('change', function(e) {
-            const fileName = e.target.files[0].name;
-            const label = this.nextElementSibling;
-            if (label && label.classList.contains('custom-file-label')) {
-                label.textContent = fileName;
-            }
-        });
-    });
-    
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const required = this.querySelectorAll('[required]');
-            let isValid = true;
+    // Gerenciar campos editáveis
+    document.querySelectorAll('.campo-editavel-check').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const campoId = this.dataset.campoId;
+            const editavel = this.checked ? 1 : 0;
             
-            required.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    field.classList.remove('is-invalid');
-                }
+            fetch('/api/atualizar_campo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: campoId,
+                    editavel: editavel
+                })
             });
-            
-            if (!isValid) {
-                e.preventDefault();
-                alert('Por favor, preencha todos os campos obrigatórios.');
-            }
         });
     });
-});
-
-function limparSelecao() {
-    if (window.seletorArea) {
-        window.seletorArea.limparSelecao();
-    }
-}
-
-function salvarCampos() {
-    // Implementar se necessário
-}
-
-function testarPSD(tipo) {
-    const input = document.querySelector(`input[name="${tipo}_psd"]`);
-    if (!input || !input.files[0]) {
-        alert('Selecione um arquivo PSD primeiro.');
-        return;
-    }
     
-    const formData = new FormData();
-    formData.append('psd', input.files[0]);
-    
-    fetch('/api/testar_psd', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        const statusDiv = document.getElementById(`status-${tipo}`);
-        if (statusDiv) {
-            statusDiv.className = data.success ? 'status-ok' : 'status-erro';
-            statusDiv.textContent = data.message;
-        }
+    // Atualizar nomes de exibição
+    document.querySelectorAll('.nome-exibicao-input').forEach(input => {
+        input.addEventListener('blur', function() {
+            const campoId = this.dataset.campoId;
+            const nomeExibicao = this.value;
+            
+            fetch('/api/atualizar_campo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: campoId,
+                    nome_exibicao: nomeExibicao
+                })
+            });
+        });
     });
-}
-
-function previewFoto(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('foto-preview');
-            if (preview) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-        }
-        reader.readAsDataURL(input.files[0]);
+    
+    // Detectar campos automaticamente
+    const btnDetectar = document.getElementById('btn-detectar-campos');
+    if (btnDetectar) {
+        btnDetectar.addEventListener('click', function() {
+            const tipo = this.dataset.tipo;
+            
+            fetch(`/api/detectar_campos/${tipo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Detectados ${data.total_campos} campos no PSD ${tipo}. Recarregue a página para vê-los.`);
+                        location.reload();
+                    } else {
+                        alert('Erro ao detectar campos: ' + data.error);
+                    }
+                });
+        });
     }
-}
+    
+    // Preview de foto
+    const inputFoto = document.getElementById('foto-input');
+    if (inputFoto) {
+        inputFoto.addEventListener('change', function() {
+            const preview = document.getElementById('foto-preview');
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+});

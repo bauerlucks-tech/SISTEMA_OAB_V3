@@ -16,153 +16,215 @@
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link text-white" href="/">
-                    <i class="fas fa-home"></i> Voltar ao Início
+                    <i class="fas fa-home"></i> Início
+                </a>
+                <a class="nav-link text-white" href="/visualizar">
+                    <i class="fas fa-crop"></i> Área da Foto
+                </a>
+                <a class="nav-link text-white" href="/gerar">
+                    <i class="fas fa-play"></i> Gerar
                 </a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <div class="row">
+        <h1 class="mb-4"><i class="fas fa-sliders-h"></i> Configurar Campos da Carteirinha</h1>
+        
+        <!-- Status -->
+        <div class="row mb-4">
             <div class="col-12">
-                <div class="card card-oab mb-4">
-                    <div class="card-header bg-azul-oab text-white">
-                        <i class="fas fa-sliders-h"></i> Configuração dos Campos
-                    </div>
+                <div class="card card-oab">
                     <div class="card-body">
-                        <p class="card-text">
-                            Configure os campos editáveis que aparecerão no formulário de geração.
-                            O sistema detectou automaticamente as camadas de texto dos PSDs.
-                        </p>
+                        <h5>Status da Configuração</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-file-image fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h6>PSD Frente</h6>
+                                        <p class="mb-0">{{ '✅ Carregado' if frente else '❌ Pendente' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-file-image fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h6>PSD Verso</h6>
+                                        <p class="mb-0">{{ '✅ Carregado' if verso else '❌ Pendente' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-camera fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h6>Área da Foto</h6>
+                                        <p class="mb-0">{{ '✅ Configurada' if area_foto else '❌ Pendente' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        
+        <!-- Campos da Frente -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card card-oab">
-                    <div class="card-header">
-                        <i class="fas fa-eye"></i> Preview do Layout
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-id-card"></i> Campos da Frente
+                            <button class="btn btn-sm btn-light float-end" id="btn-detectar-frente" data-tipo="frente">
+                                <i class="fas fa-search"></i> Detectar Campos
+                            </button>
+                        </h4>
                     </div>
-                    <div class="card-body text-center">
-                        {% if preview %}
-                            <img src="{{ url_for('static', filename=preview.replace('static/', '')) }}" 
-                                 class="preview-psd" 
-                                 alt="Preview do PSD">
+                    <div class="card-body">
+                        {% if campos_frente %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="50">#</th>
+                                            <th>Nome Original (PSD)</th>
+                                            <th>Nome para Exibição</th>
+                                            <th width="100">Editável</th>
+                                            <th width="100">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for campo in campos_frente %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>
+                                                <code>{{ campo[1] }}</code>
+                                            </td>
+                                            <td>
+                                                <input type="text" 
+                                                       class="form-control form-control-sm nome-exibicao-input"
+                                                       value="{{ campo[2] if campo[2] else campo[1] }}"
+                                                       data-campo-id="{{ campo[0] }}">
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input campo-editavel-check" 
+                                                           type="checkbox" 
+                                                           data-campo-id="{{ campo[0] }}"
+                                                           {{ 'checked' if campo[4] == 1 else '' }}>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         {% else %}
                             <div class="alert alert-warning">
-                                Preview não disponível. Certifique-se de que os PSDs foram carregados.
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Nenhum campo detectado. 
+                                <button class="btn btn-sm btn-warning ms-2" id="btn-detectar-frente" data-tipo="frente">
+                                    <i class="fas fa-search"></i> Detectar Campos do PSD
+                                </button>
                             </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card card-oab">
-                    <div class="card-header bg-success text-white">
-                        <i class="fas fa-id-card"></i> Campos da Frente
-                    </div>
-                    <div class="card-body">
-                        <div id="lista-campos-frente">
-                            {% for campo in campos_frente %}
-                            <div class="campo-editavel mb-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ campo[2] }}</strong>
-                                        <small class="text-muted">({{ campo[3] }})</small>
-                                        <br>
-                                        <small>Posição: {{ campo[4] }}</small>
-                                    </div>
-                                    <div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" 
-                                                   type="checkbox" 
-                                                   id="editavel_{{ campo[0] }}"
-                                                   {% if campo[5] == 1 %}checked{% endif %}
-                                                   onchange="atualizarEditavel({{ campo[0] }}, this.checked)">
-                                            <label class="form-check-label" for="editavel_{{ campo[0] }}">
-                                                Editável
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-2">
-                                    <input type="text" 
-                                           class="form-control form-control-sm" 
-                                           placeholder="Nome do campo no formulário"
-                                           value="{{ campo[3] }}"
-                                           onchange="atualizarNomeCampo({{ campo[0] }}, this.value)">
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        
+        <!-- Campos do Verso -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card card-oab">
                     <div class="card-header bg-info text-white">
-                        <i class="fas fa-id-card"></i> Campos do Verso
+                        <h4 class="mb-0">
+                            <i class="fas fa-id-card"></i> Campos do Verso
+                            <button class="btn btn-sm btn-light float-end" id="btn-detectar-verso" data-tipo="verso">
+                                <i class="fas fa-search"></i> Detectar Campos
+                            </button>
+                        </h4>
                     </div>
                     <div class="card-body">
-                        <div id="lista-campos-verso">
-                            {% for campo in campos_verso %}
-                            <div class="campo-editavel mb-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ campo[2] }}</strong>
-                                        <small class="text-muted">({{ campo[3] }})</small>
-                                        <br>
-                                        <small>Posição: {{ campo[4] }}</small>
-                                    </div>
-                                    <div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" 
-                                                   type="checkbox" 
-                                                   id="editavel_{{ campo[0] }}"
-                                                   {% if campo[5] == 1 %}checked{% endif %}
-                                                   onchange="atualizarEditavel({{ campo[0] }}, this.checked)">
-                                            <label class="form-check-label" for="editavel_{{ campo[0] }}">
-                                                Editável
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-2">
-                                    <input type="text" 
-                                           class="form-control form-control-sm" 
-                                           placeholder="Nome do campo no formulário"
-                                           value="{{ campo[3] }}"
-                                           onchange="atualizarNomeCampo({{ campo[0] }}, this.value)">
-                                </div>
+                        {% if campos_verso %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="50">#</th>
+                                            <th>Nome Original (PSD)</th>
+                                            <th>Nome para Exibição</th>
+                                            <th width="100">Editável</th>
+                                            <th width="100">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for campo in campos_verso %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>
+                                                <code>{{ campo[1] }}</code>
+                                            </td>
+                                            <td>
+                                                <input type="text" 
+                                                       class="form-control form-control-sm nome-exibicao-input"
+                                                       value="{{ campo[2] if campo[2] else campo[1] }}"
+                                                       data-campo-id="{{ campo[0] }}">
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input campo-editavel-check" 
+                                                           type="checkbox" 
+                                                           data-campo-id="{{ campo[0] }}"
+                                                           {{ 'checked' if campo[4] == 1 else '' }}>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
-                            {% endfor %}
-                        </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Nenhum campo detectado. 
+                                <button class="btn btn-sm btn-warning ms-2" id="btn-detectar-verso" data-tipo="verso">
+                                    <i class="fas fa-search"></i> Detectar Campos do PSD
+                                </button>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-
+        
+        <!-- Ações -->
         <div class="row mb-5">
             <div class="col-12">
                 <div class="card card-oab">
                     <div class="card-body text-center">
                         <div class="d-grid gap-2 d-md-block">
-                            <button class="btn btn-dourado btn-lg mx-2" onclick="salvarConfiguracao()">
-                                <i class="fas fa-save"></i> Salvar Configuração
-                            </button>
-                            <a href="{{ url_for('visualizar') }}" class="btn btn-oab btn-lg mx-2">
-                                <i class="fas fa-crop"></i> Definir Área da Foto
+                            <a href="/visualizar" class="btn btn-oab btn-lg mx-2">
+                                <i class="fas fa-crop"></i> Configurar Área da Foto
                             </a>
-                            <a href="{{ url_for('gerar') }}" class="btn btn-success btn-lg mx-2">
+                            <a href="/gerar" class="btn btn-success btn-lg mx-2">
                                 <i class="fas fa-play"></i> Ir para Geração
+                            </a>
+                            <a href="/" class="btn btn-secondary btn-lg mx-2">
+                                <i class="fas fa-home"></i> Voltar ao Início
                             </a>
                         </div>
                     </div>
@@ -174,76 +236,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>
-        function atualizarEditavel(id, editavel) {
-            fetch('/api/atualizar_campo', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    id: id,
-                    editavel: editavel ? 1 : 0
-                })
-            });
-        }
+        // Detectar campos
+        document.getElementById('btn-detectar-frente')?.addEventListener('click', function() {
+            detectarCampos('frente');
+        });
         
-        function atualizarNomeCampo(id, nome) {
-            fetch('/api/atualizar_campo', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    id: id,
-                    nome_campo: nome
-                })
-            });
-        }
+        document.getElementById('btn-detectar-verso')?.addEventListener('click', function() {
+            detectarCampos('verso');
+        });
         
-        function salvarConfiguracao() {
-            const campos = [];
-            
-            document.querySelectorAll('#lista-campos-frente .campo-editavel').forEach(item => {
-                const id = item.querySelector('input[type="checkbox"]').id.replace('editavel_', '');
-                const editavel = item.querySelector('input[type="checkbox"]').checked;
-                const nomeCampo = item.querySelector('input[type="text"]').value;
-                
-                campos.push({
-                    id: parseInt(id),
-                    editavel: editavel,
-                    nome_campo: nomeCampo,
-                    tipo: 'frente'
+        function detectarCampos(tipo) {
+            fetch(`/api/detectar_campos/${tipo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✅ Detectados ${data.total_campos} campos no PSD ${tipo}! Recarregando...`);
+                        location.reload();
+                    } else {
+                        alert(`❌ Erro: ${data.error || 'Não foi possível detectar campos'}`);
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Erro de conexão: ' + error);
                 });
-            });
-            
-            document.querySelectorAll('#lista-campos-verso .campo-editavel').forEach(item => {
-                const id = item.querySelector('input[type="checkbox"]').id.replace('editavel_', '');
-                const editavel = item.querySelector('input[type="checkbox"]').checked;
-                const nomeCampo = item.querySelector('input[type="text"]').value;
-                
-                campos.push({
-                    id: parseInt(id),
-                    editavel: editavel,
-                    nome_campo: nomeCampo,
-                    tipo: 'verso'
-                });
-            });
-            
-            fetch('/api/salvar_config_campos', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ campos: campos })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Configuração salva com sucesso!');
-                } else {
-                    alert('Erro ao salvar configuração.');
-                }
-            });
         }
     </script>
 </body>
