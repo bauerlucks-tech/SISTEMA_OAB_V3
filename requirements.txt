@@ -1,4 +1,4 @@
 Flask
 psd-tools
-Pillow=
+Pillo
 gunicorn
