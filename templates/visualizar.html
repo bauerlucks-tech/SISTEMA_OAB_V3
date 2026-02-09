@@ -3,126 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurar Área da Foto - Sistema OAB</title>
+    <title>Área da Foto - Sistema OAB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-oab">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-id-card"></i> Sistema OAB
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link text-white" href="/configurar">
-                    <i class="fas fa-sliders-h"></i> Configurar Campos
+    <div class="container">
+        <nav class="navbar-oab mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="fas fa-id-card"></i> Sistema OAB
                 </a>
-                <a class="nav-link text-white" href="/gerar">
-                    <i class="fas fa-play"></i> Gerar
-                </a>
+                <div class="navbar-nav">
+                    <a class="nav-link text-white" href="/configurar">
+                        <i class="fas fa-sliders-h"></i> Configurar Campos
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="card card-oab mb-4">
+            <div class="card-header-oab">
+                <h2><i class="fas fa-crop-alt"></i> Configurar Área da Foto 3x4</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle"></i> Instruções:</h5>
+                    <ol>
+                        <li><strong>Primeiro clique:</strong> Canto superior esquerdo da área da foto</li>
+                        <li><strong>Segundo clique:</strong> Canto inferior direito da área da foto</li>
+                        <li><strong>Clique em "Salvar Área":</strong> Para confirmar a seleção</li>
+                    </ol>
+                    <p class="mb-0">A área selecionada aparecerá em vermelho. Você pode ajustar quantas vezes precisar.</p>
+                </div>
             </div>
         </div>
-    </nav>
-
-    <div class="container mt-4">
-        <h1 class="mb-4"><i class="fas fa-crop"></i> Configurar Área da Foto 3x4</h1>
         
-        <!-- Instruções -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card card-oab">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Instruções</h5>
+        <!-- Preview -->
+        <div class="card card-oab mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4><i class="fas fa-image"></i> Preview do PSD Frente</h4>
+            </div>
+            <div class="card-body text-center">
+                {% if preview %}
+                <div id="preview-container" class="mb-4">
+                    <img id="preview-imagem" 
+                         src="{{ url_for('static', filename=preview.replace('static/', '')) }}" 
+                         alt="Preview do PSD"
+                         class="img-fluid">
+                    <div id="area-selecao"></div>
+                </div>
+                
+                <!-- Status -->
+                <div id="status-selecao" class="alert alert-info mb-3">
+                    🖱️ Clique para selecionar o primeiro ponto
+                </div>
+                
+                <!-- Coordenadas -->
+                <div id="coordenadas-info" class="coordenadas-info mb-3">
+                    {% if area_foto %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Área já configurada. Clique na imagem para redefinir.
                     </div>
-                    <div class="card-body">
-                        <p>Siga estes passos para definir a área onde a foto 3x4 será colocada:</p>
-                        <ol>
-                            <li><strong>Clique no primeiro ponto</strong> - Canto superior esquerdo da área da foto</li>
-                            <li><strong>Clique no segundo ponto</strong> - Canto inferior direito da área da foto</li>
-                            <li><strong>Clique em "Salvar Área"</strong> - Para salvar as coordenadas</li>
-                        </ol>
-                        <div class="alert alert-info">
-                            <i class="fas fa-lightbulb"></i> 
-                            <strong>Dica:</strong> A área selecionada será mostrada em vermelho. 
-                            Você pode limpar e refazer quantas vezes precisar.
-                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Controles -->
+                <div class="d-grid gap-2 d-md-block mb-3">
+                    <button id="btn-salvar-area" class="btn btn-oab" disabled>
+                        <i class="fas fa-save"></i> Salvar Área da Foto
+                    </button>
+                    <button id="btn-limpar" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Limpar Seleção
+                    </button>
+                </div>
+                
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Preview não disponível.
+                    <br>
+                    <a href="/" class="btn btn-warning mt-2">
+                        <i class="fas fa-upload"></i> Carregar PSD Frente Primeiro
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Navegação -->
+        <div class="card card-oab">
+            <div class="card-body text-center">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="/" class="btn btn-secondary w-100">
+                            <i class="fas fa-home"></i> Página Inicial
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="/configurar" class="btn btn-info w-100">
+                            <i class="fas fa-arrow-left"></i> Voltar para Campos
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="/gerar" class="btn btn-success w-100">
+                            <i class="fas fa-play"></i> Ir para Geração
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Área de visualização -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card card-oab">
-                    <div class="card-header">
-                        <h5 class="mb-0">Preview do PSD Frente</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        {% if preview %}
-                            <div id="preview-container" style="position: relative; display: inline-block;">
-                                <img id="preview-imagem" 
-                                     src="{{ url_for('static', filename=preview.replace('static/', '')) }}" 
-                                     alt="Preview do PSD"
-                                     style="max-width: 100%; border: 1px solid #ddd;">
-                                <div id="area-selecao" style="position: absolute; border: 3px dashed red; background-color: rgba(255, 0, 0, 0.2); display: none;"></div>
-                            </div>
-                            
-                            <div class="mt-3">
-                                <div id="status-selecao" class="alert alert-secondary">
-                                    Clique para selecionar o primeiro ponto
-                                </div>
-                                
-                                <div class="d-grid gap-2 d-md-block">
-                                    <button id="btn-salvar-area" class="btn btn-oab" disabled>
-                                        <i class="fas fa-save"></i> Salvar Área da Foto
-                                    </button>
-                                    <button id="btn-limpar" class="btn btn-secondary">
-                                        <i class="fas fa-trash"></i> Limpar Seleção
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div id="coordenadas-info" class="coordenadas-info mt-3">
-                                {% if area_foto %}
-                                    <div class="alert alert-success">
-                                        <i class="fas fa-check-circle"></i> 
-                                        Área já configurada. Clique na imagem para redefinir.
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i> 
-                                Preview não disponível. Certifique-se de que o PSD frente foi carregado.
-                                <a href="/" class="btn btn-sm btn-warning ms-2">
-                                    <i class="fas fa-upload"></i> Carregar PSD
-                                </a>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Ações -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="card card-oab">
-                    <div class="card-body text-center">
-                        <div class="d-grid gap-2 d-md-block">
-                            <a href="/configurar" class="btn btn-dourado btn-lg mx-2">
-                                <i class="fas fa-arrow-left"></i> Voltar para Campos
-                            </a>
-                            <a href="/gerar" class="btn btn-success btn-lg mx-2">
-                                <i class="fas fa-play"></i> Ir para Geração
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Área salva (hidden) -->
+        {% if area_foto %}
+        <input type="hidden" id="area-salva" value="{{ area_foto }}">
+        {% endif %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

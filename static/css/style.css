@@ -1,4 +1,4 @@
-/* Estilo Sistema OAB */
+/* Estilos Sistema OAB */
 :root {
     --azul-oab: #003366;
     --dourado-oab: #D4AF37;
@@ -8,11 +8,18 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--cinza-claro);
+    padding-top: 20px;
+}
+
+.container {
+    max-width: 1200px;
 }
 
 .navbar-oab {
     background: linear-gradient(135deg, var(--azul-oab) 0%, #004080 100%);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px 0;
+    border-radius: 10px;
+    margin-bottom: 30px;
 }
 
 .navbar-brand {
@@ -25,31 +32,40 @@ body {
     background: linear-gradient(135deg, var(--azul-oab) 0%, #004080 100%);
     color: white;
     border: none;
-    padding: 10px 25px;
-    border-radius: 5px;
+    padding: 12px 30px;
+    border-radius: 8px;
     font-weight: bold;
     transition: all 0.3s;
+    margin: 5px;
 }
 
 .btn-oab:hover {
     background: linear-gradient(135deg, #004080 0%, #0055a5 100%);
     color: white;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .btn-dourado {
     background-color: var(--dourado-oab);
     color: var(--azul-oab);
     border: none;
-    padding: 10px 25px;
-    border-radius: 5px;
+    padding: 12px 30px;
+    border-radius: 8px;
     font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-dourado:hover {
+    background-color: #e6c260;
+    transform: translateY(-2px);
 }
 
 .card-oab {
     border: 2px solid var(--dourado-oab);
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
     transition: transform 0.3s;
 }
 
@@ -57,16 +73,27 @@ body {
     transform: translateY(-5px);
 }
 
+.card-header-oab {
+    background: linear-gradient(135deg, var(--azul-oab) 0%, #004080 100%);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 15px 20px;
+    font-weight: bold;
+}
+
 /* Área de seleção da foto */
 #preview-container {
     position: relative;
     display: inline-block;
     cursor: crosshair;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 #preview-imagem {
     max-width: 100%;
-    border: 1px solid #ddd;
+    display: block;
 }
 
 #area-selecao {
@@ -78,28 +105,140 @@ body {
 
 .coordenadas-info {
     background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    padding: 10px;
-    margin-top: 10px;
+    border: 2px solid var(--azul-oab);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
 }
 
 .campo-config {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    padding: 10px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
     margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+.campo-config:hover {
+    border-color: var(--azul-oab);
+    box-shadow: 0 2px 10px rgba(0, 51, 102, 0.1);
 }
 
 .campo-config label {
     font-weight: bold;
     color: var(--azul-oab);
+    display: block;
+    margin-bottom: 8px;
 }
 
 .preview-carteirinha {
-    max-width: 300px;
+    max-width: 100%;
     border: 3px solid var(--dourado-oab);
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.alert-oab {
+    border-left: 5px solid var(--azul-oab);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .btn-oab, .btn-dourado {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Status indicators */
+.status-ok {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-pendente {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.status-erro {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Formulários */
+.form-control-oab {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s;
+}
+
+.form-control-oab:focus {
+    border-color: var(--azul-oab);
+    box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+}
+
+/* Tabelas */
+.table-oab {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-oab thead {
+    background: linear-gradient(135deg, var(--azul-oab) 0%, #004080 100%);
+    color: white;
+}
+
+.table-oab th {
+    border: none;
+    padding: 15px;
+}
+
+.table-oab td {
+    border-color: #e0e0e0;
+    padding: 12px 15px;
+}
+
+/* Footer */
+.footer-oab {
+    background: linear-gradient(135deg, var(--azul-oab) 0%, #004080 100%);
+    color: white;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+}
+
+.footer-oab a {
+    color: var(--dourado-oab);
+    text-decoration: none;
+}
+
+.footer-oab a:hover {
+    color: white;
+    text-decoration: underline;
 }

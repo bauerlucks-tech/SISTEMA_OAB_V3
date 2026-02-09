@@ -1,4 +1,4 @@
-Flask
-psd-tools
-Pillow
-gunicorn
+Flask==2.3.3
+psd-tools==1.9.28
+Pillow==9.5.0
+gunicorn==21.2.0

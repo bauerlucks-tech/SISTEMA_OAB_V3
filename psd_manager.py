@@ -26,11 +26,11 @@ def extrair_camadas_psd(psd_path):
         print(f"Erro ao extrair camadas PSD: {e}")
         return []
 
-def processar_psd_para_banco(psd_path, tipo_psd):
+def processar_psd_para_banco(psd_path, tipo_psd, db_path):
     """Processa um PSD e salva suas camadas no banco"""
     camadas = extrair_camadas_psd(psd_path)
     
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
     # Remover camadas antigas do mesmo tipo
@@ -51,7 +51,7 @@ def processar_psd_para_banco(psd_path, tipo_psd):
     
     return len([c for c in camadas if c['tipo'] == 'type'])
 
-def gerar_preview_psd(psd_path, tamanho_max=(800, 600)):
+def gerar_preview_psd(psd_path, previews_dir, tamanho_max=(800, 600)):
     """Gera uma imagem preview do PSD"""
     try:
         psd = PSDImage.open(psd_path)
@@ -62,20 +62,16 @@ def gerar_preview_psd(psd_path, tamanho_max=(800, 600)):
             img.thumbnail(tamanho_max, Image.Resampling.LANCZOS)
         
         # Salvar preview
-        preview_dir = 'static/previews'
-        os.makedirs(preview_dir, exist_ok=True)
-        
-        preview_path = os.path.join(preview_dir, 'preview.png')
+        preview_path = os.path.join(previews_dir, 'preview.png')
         img.save(preview_path)
         
-        # CORREÇÃO: usar replace corretamente
-        return preview_path.replace('\\', '/')
+        return preview_path
     
     except Exception as e:
         print(f"Erro ao gerar preview: {e}")
         return None
 
-def gerar_carteirinha_completa(psd_path, dados, output_path, foto_path=None, area_foto=None):
+def gerar_carteirinha_completa(psd_path, dados, output_path, db_path, foto_path=None, area_foto=None):
     """Gera uma carteirinha completa a partir do PSD"""
     try:
         # Abrir PSD
@@ -88,41 +84,45 @@ def gerar_carteirinha_completa(psd_path, dados, output_path, foto_path=None, are
         # Criar objeto para desenho
         draw = ImageDraw.Draw(img)
         
-        # Tentar carregar fonte (ajustar caminho conforme necessário)
+        # Tentar carregar fonte
         try:
             font = ImageFont.truetype("arial.ttf", 24)
         except:
-            font = ImageFont.load_default()
-        
-        # Obter configuração de campos do banco
-        conn = sqlite3.connect('database.db')
-        c = conn.cursor()
+            try:
+                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+            except:
+                font = ImageFont.load_default()
         
         # Determinar tipo (frente ou verso)
         tipo = 'frente' if 'frente' in psd_path.lower() else 'verso'
         
+        # Obter configuração de campos do banco
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
         c.execute("SELECT nome_original, nome_exibicao FROM campos_config WHERE tipo_psd = ? AND editavel = 1", (tipo,))
         campos = c.fetchall()
+        
+        # Obter posições dos campos
+        c.execute("SELECT nome_original, posicao FROM campos_posicoes WHERE tipo_psd = ?", (tipo,))
+        posicoes = {row[0]: json.loads(row[1]) for row in c.fetchall()}
         
         conn.close()
         
         # Aplicar dados nos campos
         for nome_original, nome_exibicao in campos:
-            if nome_exibicao in dados:
-                valor = dados[nome_exibicao]['valor']
+            if nome_original in dados:
+                valor = dados[nome_original]['valor']
                 
-                # Buscar posição do campo no PSD
-                # (Nota: você precisa ter essa informação salva ou detectada)
-                # Por enquanto, vamos assumir que o nome_original corresponde a uma camada
-                try:
-                    # Aqui você precisaria da lógica para posicionar o texto corretamente
-                    # Isso depende de como você estruturou seu PSD
+                # Buscar posição do campo
+                if nome_original in posicoes:
+                    x, y, x2, y2 = posicoes[nome_original]
+                    # Centralizar texto na área
+                    text_width = draw.textlength(valor, font=font)
+                    text_x = x + (x2 - x - text_width) // 2
+                    text_y = y + (y2 - y - 24) // 2
                     
-                    # Posição padrão (ajustar conforme seu layout)
-                    x, y = 100, 100
-                    draw.text((x, y), str(valor), fill=(0, 0, 0), font=font)
-                except Exception as e:
-                    print(f"Erro ao desenhar texto {nome_exibicao}: {e}")
+                    draw.text((text_x, text_y), str(valor), fill=(0, 0, 0), font=font)
         
         # Inserir foto se for a frente e tiver área definida
         if foto_path and area_foto and tipo == 'frente':
@@ -130,10 +130,11 @@ def gerar_carteirinha_completa(psd_path, dados, output_path, foto_path=None, are
                 foto = Image.open(foto_path).convert("RGB")
                 
                 # Redimensionar para a área
-                foto = foto.resize((area_foto[2] - area_foto[0], area_foto[3] - area_foto[1]))
+                x1, y1, x2, y2 = area_foto
+                foto = foto.resize((x2 - x1, y2 - y1))
                 
                 # Colar a foto
-                img.paste(foto, (area_foto[0], area_foto[1]))
+                img.paste(foto, (x1, y1))
             except Exception as e:
                 print(f"Erro ao inserir foto: {e}")
         
@@ -145,11 +146,3 @@ def gerar_carteirinha_completa(psd_path, dados, output_path, foto_path=None, are
     except Exception as e:
         print(f"Erro ao gerar carteirinha: {e}")
         return False
-
-def testar_psd(psd_path):
-    """Testa se um PSD pode ser aberto"""
-    try:
-        psd = PSDImage.open(psd_path)
-        return True, f"PSD aberto com sucesso. Dimensões: {psd.width}x{psd.height}"
-    except Exception as e:
-        return False, f"Erro ao abrir PSD: {str(e)}"

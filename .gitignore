@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.db
+*.sqlite3
+static/psd_base/*
+static/fotos/*
+static/gerados/*
+static/previews/*
+.DS_Store
