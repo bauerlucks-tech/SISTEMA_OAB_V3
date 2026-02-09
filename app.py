@@ -1,82 +1,99 @@
-from flask import Flask, render_template, request, redirect, jsonify
-import sqlite3
-import os
-import json
-
-app = Flask(__name__)
-
-# Configurações básicas
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'database.db')
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS sistema_config (
-            id INTEGER PRIMARY KEY,
-            psd_frente TEXT,
-            psd_verso TEXT,
-            area_foto TEXT
-        )
-    ''')
-    
-    c.execute("INSERT OR IGNORE INTO sistema_config (id) VALUES (1)")
-    conn.commit()
-    conn.close()
-
-init_db()
-
-@app.route('/')
-def index():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT psd_frente, psd_verso, area_foto FROM sistema_config WHERE id = 1")
-    config = c.fetchone()
-    conn.close()
-    
-    return render_template('admin.html',
-                         frente=config[0] if config else None,
-                         verso=config[1] if config else None,
-                         area_configurada=config[2] if config else None)
-
-@app.route('/upload_psd', methods=['POST'])
-def upload_psd():
-    tipo = request.form.get('tipo')
-    file = request.files.get('psd')
-    
-    if file:
-        # Salvar arquivo
-        filename = f"{tipo}.psd"
-        file.save(os.path.join('static', 'psd_base', filename))
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema OAB - Administração</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Sistema OAB - Gerador de Carteirinhas</h1>
         
-        # Salvar no banco
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Status do Sistema</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="alert {{ 'alert-success' if frente else 'alert-warning' }}">
+                            <strong>PSD Frente:</strong><br>
+                            {{ frente if frente else 'Não carregado' }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert {{ 'alert-success' if verso else 'alert-warning' }}">
+                            <strong>PSD Verso:</strong><br>
+                            {{ verso if verso else 'Não carregado' }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert {{ 'alert-success' if area_configurada else 'alert-warning' }}">
+                            <strong>Área da Foto:</strong><br>
+                            {{ 'Configurada' if area_configurada else 'Não configurada' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        if tipo == 'frente':
-            c.execute("UPDATE sistema_config SET psd_frente = ? WHERE id = 1", (filename,))
-        else:
-            c.execute("UPDATE sistema_config SET psd_verso = ? WHERE id = 1", (filename,))
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Upload de PSDs</h4>
+            </div>
+            <div class="card-body">
+                <form action="/upload_psd" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="tipo" value="frente">
+                    <div class="mb-3">
+                        <label class="form-label">PSD Frente:</label>
+                        <input type="file" name="psd" class="form-control" accept=".psd" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload PSD Frente</button>
+                </form>
+                
+                <hr>
+                
+                <form action="/upload_psd" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="tipo" value="verso">
+                    <div class="mb-3">
+                        <label class="form-label">PSD Verso:</label>
+                        <input type="file" name="psd" class="form-control" accept=".psd" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload PSD Verso</button>
+                </form>
+            </div>
+        </div>
         
-        conn.commit()
-        conn.close()
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Menu de Navegação</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="/configurar" class="btn btn-info">Configurar Campos</a>
+                    <a href="/visualizar" class="btn btn-warning">Área da Foto</a>
+                    <a href="/gerar" class="btn btn-success">Gerar Carteirinha</a>
+                </div>
+            </div>
+        </div>
+        
+        {% if total_geracoes > 0 %}
+        <div class="card">
+            <div class="card-header">
+                <h4>Histórico ({{ total_geracoes }} gerações)</h4>
+            </div>
+            <div class="card-body">
+                <ul>
+                    {% for geracao in ultimas_geracoes %}
+                    <li>{{ geracao[0] }} - {{ geracao[1] }} ({{ geracao[2] }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
     
-    return redirect('/')
-
-@app.route('/configurar')
-def configurar():
-    return render_template('configurar.html')
-
-@app.route('/visualizar')
-def visualizar():
-    return render_template('visualizar.html')
-
-@app.route('/gerar')
-def gerar():
-    return render_template('gerar.html')
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
